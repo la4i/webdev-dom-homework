@@ -9,6 +9,7 @@
 <body>
   <div class="container">
     <ul class="comments" id="list">
+      <!-- Список рендерится из JS -->
     </ul>
     <div class="add-form">
       <input type="text" class="add-form-name" id="name" placeholder="Введите ваше имя" />
@@ -20,16 +21,18 @@
     </div>
   </div>
 
-  <style> 
-  .errorColorButton {
-    background-color : #dbd9d9;
-  }
-  .errorColorInput {
-    background-color : #FFBABA;
-  }
-  .errorBoxShadowInput {
-    box-shadow: 0 0 6px #FF1010;
-  }
+  <style>
+    .errorColorButton {
+      background-color: #dbd9d9;
+    }
+
+    .errorColorInput {
+      background-color: #FFBABA;
+    }
+
+    .errorBoxShadowInput {
+      box-shadow: 0 0 6px #FF1010;
+    }
   </style>
 
   <script>
@@ -41,6 +44,7 @@
     document.addEventListener("DOMContentLoaded", function () {
       checkInputs();
     });
+
     function checkInputs() {
       if (nameElement.value === "" || commentsElement.value === "") {
         buttonElement.classList.add("errorColorButton");
@@ -57,48 +61,63 @@
     })
 
     const comments = [
-    {
-      name: 'Глеб Фокин',
-      date: '12.02.22 12:18',
-      comment: 'Это будет первый комментарий на этой странице',
-      like: 3,
-      likes: 'like-button'
-    },
-    {
-      name: 'Варвара Н.',
-      date: '13.02.22 19:22',
-      comment: 'Мне нравится как оформлена эта страница! ❤',
-      like: 75,
-      likes: 'like-button'
+      {
+        name: 'Глеб Фокин',
+        date: '12.02.22 12:18',
+        comment: 'Это будет первый комментарий на этой странице',
+        like: 3,
+        likes: false
+      },
+      {
+        name: 'Варвара Н.',
+        date: '13.02.22 19:22',
+        comment: 'Мне нравится как оформлена эта страница! ❤',
+        like: 75,
+        likes: false
+      }
+    ];
+
+    const likesElements = () => {
+      const likesButtonsElements = document.querySelectorAll('.like-button');
+
+      for (const likesButtonsElement of likesButtonsElements) {
+        likesButtonsElement.addEventListener('click', () => {
+          const index = likesButtonsElement.dataset.index;
+          if (comments[index]['likes'] === true) {
+            comments[index].like -= 1;
+            comments[index]['likes'] = false;
+          } else {
+            comments[index].like += 1;
+            comments[index]['likes'] = true;
+          }
+          renderComments();
+        });
+      };
+
+      const likeButtons = document.querySelectorAll('.like-button');
+      for (const button of likeButtons) {
+        button.addEventListener('click', function (event) {
+          event.stopPropagation();
+        });
+      }
+
     }
-  ];
 
-  const likesElements = () => {
-  const likesButtonsElements = document.querySelectorAll('.like-button');
+    const answerElements = () => {
+      const commentElements = document.querySelectorAll(".comment");
+      for (const commentElement of commentElements) {
+        commentElement.addEventListener("click", (event) => {
+          const nameAuthor = commentElement.querySelector(".comment-header div:first-child").textContent;
+          const textAuthor = commentElement.querySelector(".comment-text").textContent;
+          commentsElement.value = `>${textAuthor.trim()}\n${nameAuthor}, `;
+          commentsElement.focus();
+        });
+      }
+    }
 
-  for (const likesButtonsElement of likesButtonsElements) {
-    likesButtonsElement.addEventListener('click', () => {
-      const index = likesButtonsElement.dataset.index;
-      let counter = comments[index]['like'];
-      
-        if (comments[index]['likes']  === 'like-button -active-like'){
-          counter -=1;
-          comments[index]['likes']  = 'like-button'
-        } else {
-          counter +=1;
-          comments[index]['likes'] = 'like-button -active-like';
-        }
-        console.log(comments[index]['like'] = counter);
-        renderComments(); 
-      });
-    };
-  }
-
-  likesElements();
-
-  const renderComments = () => {
-    const commentsHtml = comments.map((comment, index) => {
-      return `<li class="comment">
+    const renderComments = () => {
+      const commentsHtml = comments.map((comment, index) => {
+        return `<li class="comment">
         <div class="comment-header">
           <div>${comment.name}</div>
           <div>${comment.date}</div>
@@ -112,17 +131,18 @@
         <div class="comment-footer">
           <div class="likes">
             <span class="likes-counter">${comment.like}</span>
-            <button data-index='${index}' class="${comment.likes}"></button>
+            <button data-index='${index}' class="${comment.likes ? 'like-button -active-like' : 'like-button'}"></button>
           </div>
         </div>
       </li>`;
-    }).join('');
+      }).join('');
 
-    listElement.innerHTML = commentsHtml;
-    likesElements();
-  };
+      listElement.innerHTML = commentsHtml;
+      likesElements();
+      answerElements();
+    };
 
-renderComments();
+    renderComments();
 
     buttonElement.addEventListener("click", () => {
       nameElement.classList.remove("errorColorInput");
@@ -151,17 +171,25 @@ renderComments();
       let needDate = (`${date}.${month}.${year} ${hours}:${minutes}`);
 
       comments.push({
-      name: nameElement.value,
-      date: needDate,
-      comment: commentsElement.value,
-      like: 0,
-      likes: 'like-button'
-    });
+        name: nameElement.value
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;"),
+        date: needDate,
+        comment: commentsElement.value
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;"),
+        like: 0,
+        likes: false
+      });
 
-    likesElements();
-    renderComments();
+      renderComments();
     })
-
   </script>
 </body>
+
+
 </html>
