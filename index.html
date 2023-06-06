@@ -81,7 +81,8 @@
       const likesButtonsElements = document.querySelectorAll('.like-button');
 
       for (const likesButtonsElement of likesButtonsElements) {
-        likesButtonsElement.addEventListener('click', () => {
+        likesButtonsElement.addEventListener('click', (event) => {
+          event.stopPropagation();
           const index = likesButtonsElement.dataset.index;
           if (comments[index]['likes'] === true) {
             comments[index].like -= 1;
@@ -93,14 +94,6 @@
           renderComments();
         });
       };
-
-      const likeButtons = document.querySelectorAll('.like-button');
-      for (const button of likeButtons) {
-        button.addEventListener('click', function (event) {
-          event.stopPropagation();
-        });
-      }
-
     }
 
     const answerElements = () => {
