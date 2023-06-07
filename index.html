@@ -39,7 +39,7 @@
     const buttonElement = document.getElementById('add-button');
     const listElement = document.getElementById('list');
     const nameElement = document.getElementById('name');
-    const commentsElement = document.getElementById('comments');
+    let commentsElement = document.getElementById('comments');
 
     document.addEventListener("DOMContentLoaded", function () {
       checkInputs();
@@ -60,33 +60,41 @@
       }
     })
 
-    const comments = [
+    let comments = [
       {
         name: 'Глеб Фокин',
         date: '12.02.22 12:18',
-        comment: 'Это будет первый комментарий на этой странице',
-        like: 3,
-        likes: false
+        text: 'Это будет первый комментарий на этой странице',
+        likes: 3,
+        isLiked: false
       },
       {
         name: 'Варвара Н.',
         date: '13.02.22 19:22',
-        comment: 'Мне нравится как оформлена эта страница! ❤',
-        like: 75,
-        likes: false
+        text: 'Мне нравится как оформлена эта страница! ❤',
+        likes: 75,
+        isLiked: false
       }
     ];
 
+    const needTrueDate = (date) => {
+      const newDate = new Date(Date.parse(date));
+      const year = newDate.getFullYear().toString().slice(2);
+      const month = ("0" + (newDate.getMonth() + 1)).slice(-2);
+      const day = ("0" + newDate.getDate()).slice(-2);
+      const hours = ("0" + newDate.getHours()).slice(-2);
+      const minutes = ("0" + newDate.getMinutes()).slice(-2);
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
+    }
+
     const receivedComments = () => {
-      const fetchPromise = fetch(
-        'https://webdev-hw-api.vercel.app/api/v1/:Kirl_Yurch/comments',
-        {
-          method: "GET"
-        }
-      )
-      fetchPromise.then((response) => {
-        const jsonPromise = response.json();
-        jsonPromise.then((responseData) => {
+      return fetch('https://webdev-hw-api.vercel.app/api/v1/Kirl_Yurch/comments', {
+        method: "GET"
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((responseData) => {
           const appComments = responseData.comments.map((comment) => {
             return {
               name: comment.author.name,
@@ -99,50 +107,59 @@
           comments = appComments;
           renderComments();
         })
-      })
     }
 
+    receivedComments();
+   
     const updateComments = () => {
-        fetch("https://webdev-hw-api.vercel.app/api/v1/:Kirl_Yurch/comments", {
-          method: "POST",
-          body: JSON.stringify({
-            name: nameElement.value,
-            text: commentsElement.value,
-          }),
-        }).then((response) => {
-          response.json().then((responseData) => {
-            fetch(receivedComments()).then((response) => {
-              response.json().then((responseData) => {
-                comments = responseData.comments;
-                renderComments();
-              });
-            });
-          });
+      fetch("https://webdev-hw-api.vercel.app/api/v1/Kirl_Yurch/comments", {
+        method: "POST",
+        body: JSON.stringify({
+          name: nameElement.value,
+          text: commentsElement.value,
+        }),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then(() => {
+          return receivedComments();;
+        })
+        .then(() => {
+          buttonElement.disabled = false;
+          buttonElement.textContent = "Написать";
         });
-      }
 
-      updateComments();
+      renderComments();
 
       nameElement.value = '';
       commentsElement.value = '';
+    }
 
-    const likesElements = () => {
-      const likesButtonsElements = document.querySelectorAll('.like-button');
+    const isLikedElements = () => {
+      const isLikedButtonsElements = document.querySelectorAll('.like-button');
 
-      for (const likesButtonsElement of likesButtonsElements) {
-        likesButtonsElement.addEventListener('click', (event) => {
-          event.stopPropagation();
-          const index = likesButtonsElement.dataset.index;
-          if (comments[index]['likes'] === true) {
-            comments[index].like -= 1;
-            comments[index]['likes'] = false;
+      for (const isLikedButtonsElement of isLikedButtonsElements) {
+        isLikedButtonsElement.addEventListener('click', () => {
+          const index = isLikedButtonsElement.dataset.index;
+          if (comments[index].isLiked) {
+            comments[index].likes -= 1;
+            comments[index]['isLiked'] = false;
           } else {
-            comments[index].like += 1;
-            comments[index]['likes'] = true;
+            comments[index].likes += 1;
+            comments[index]['isLiked'] = true;
           }
           renderComments();
         });
       };
+
+      const likeButtons = document.querySelectorAll('.like-button');
+      for (const button of likeButtons) {
+        button.addEventListener('click', function (event) {
+          event.stopPropagation();
+        });
+      }
+
     }
 
     const answerElements = () => {
@@ -158,7 +175,7 @@
     }
 
     const renderComments = () => {
-      const commentsHtml = comments.map((comment, index) => {
+      let commentsHtml = comments.map((comment, index) => {
         return `<li class="comment">
         <div class="comment-header">
           <div>${comment.name}</div>
@@ -166,25 +183,31 @@
         </div>
         <div class="comment-body">
           <div class="comment-text">
-            ${comment.comment}
+            ${comment.text}
           </div>
           </div>
         </div>
         <div class="comment-footer">
-          <div class="likes">
-            <span class="likes-counter">${comment.like}</span>
-            <button data-index='${index}' class="${comment.likes ? 'like-button -active-like' : 'like-button'}"></button>
+          <div class="isLiked">
+            <span class="isLiked-counter">${comment.likes}</span>
+            <button data-index='${index}' class="${comment.isLiked ? 'like-button -active-like' : 'like-button'}"></button>
           </div>
         </div>
       </li>`;
       }).join('');
 
       listElement.innerHTML = commentsHtml;
-      likesElements();
+      isLikedElements();
       answerElements();
     };
 
     renderComments();
+
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.textContent = 'Пожалуйста, подождите, комментарии загружаются...';
+    listElement.append(messageElement);
+    
 
     buttonElement.addEventListener("click", () => {
       nameElement.classList.remove("errorColorInput");
@@ -203,6 +226,10 @@
         return;
       }
 
+      buttonElement.disabled = true;
+      buttonElement.textContent = "Комментарий добавляется...";
+
+      updateComments();
       const oldListHtml = listElement.innerHTML;
       let currentDate = new Date();
       const date = currentDate.getDate().toString().padStart(2, "0");
@@ -212,26 +239,26 @@
       const minutes = currentDate.getMinutes().toString().padStart(2, "0");
       let needDate = (`${date}.${month}.${year} ${hours}:${minutes}`);
 
-      comments.push({
-        name: nameElement.value
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;"),
-        date: needDate,
-        comment: commentsElement.value
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;"),
-        like: 0,
-        likes: false
-      });
+      // comments.push({
+      //   name: nameElement.value
+      //     .replaceAll("&", "&amp;")
+      //     .replaceAll("<", "&lt;")
+      //     .replaceAll(">", "&gt;")
+      //     .replaceAll('"', "&quot;"),
+      //   date: needDate,
+      //   text: commentsElement.value
+      //     .replaceAll("&", "&amp;")
+      //     .replaceAll("<", "&lt;")
+      //     .replaceAll(">", "&gt;")
+      //     .replaceAll('"', "&quot;"),
+      //   likes: 0,
+      //   isLiked: false
+      // });
 
-      renderComments();
+      receivedComments();
+
     })
   </script>
 </body>
-
 
 </html>
