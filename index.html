@@ -61,20 +61,20 @@
     })
 
     let comments = [
-      {
-        name: 'Глеб Фокин',
-        date: '12.02.22 12:18',
-        text: 'Это будет первый комментарий на этой странице',
-        likes: 3,
-        isLiked: false
-      },
-      {
-        name: 'Варвара Н.',
-        date: '13.02.22 19:22',
-        text: 'Мне нравится как оформлена эта страница! ❤',
-        likes: 75,
-        isLiked: false
-      }
+      // {
+      //   name: 'Глеб Фокин',
+      //   date: '12.02.22 12:18',
+      //   text: 'Это будет первый комментарий на этой странице',
+      //   likes: 3,
+      //   isLiked: false
+      // },
+      // {
+      //   name: 'Варвара Н.',
+      //   date: '13.02.22 19:22',
+      //   text: 'Мне нравится как оформлена эта страница! ❤',
+      //   likes: 75,
+      //   isLiked: false
+      // }
     ];
 
     const needTrueDate = (date) => {
@@ -110,16 +110,31 @@
     }
 
     receivedComments();
-   
+
     const updateComments = () => {
       fetch("https://webdev-hw-api.vercel.app/api/v1/Kirl_Yurch/comments", {
         method: "POST",
         body: JSON.stringify({
-          name: nameElement.value,
-          text: commentsElement.value,
+          name: nameElement.value
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;"),
+          text: commentsElement.value
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;"),
+          forceError: false,
         }),
       })
         .then((response) => {
+          if (response.status === 500) {
+            throw new Error('Сервер упал');
+          }
+          if (response.status === 400) {
+            throw new Error('Неверный запрос');
+          }
           return response.json();
         })
         .then(() => {
@@ -128,12 +143,26 @@
         .then(() => {
           buttonElement.disabled = false;
           buttonElement.textContent = "Написать";
+          nameElement.value = '';
+          commentsElement.value = '';
+        })
+        .catch((error) => {
+          console.warn(error);
+          buttonElement.disabled = false;
+          buttonElement.textContent = "Написать";
+          if (error.message === 'Сервер упал') {
+            alert('Сервер упал');
+          } else if (error.message === 'Неверный запрос') {
+            alert('Имя и комментарий должны быть не короче 3-х символов');
+            nameElement.classList.add("errorColorInput");
+            nameElement.classList.add("errorBoxShadowInput");
+            commentsElement.classList.add("errorColorInput");
+            commentsElement.classList.add("errorBoxShadowInput");
+          } else {
+            alert('Кажется, что-то пошло не так, повторите позже');
+          }
         });
-
       renderComments();
-
-      nameElement.value = '';
-      commentsElement.value = '';
     }
 
     const isLikedElements = () => {
@@ -159,7 +188,6 @@
           event.stopPropagation();
         });
       }
-
     }
 
     const answerElements = () => {
@@ -203,17 +231,19 @@
 
     renderComments();
 
+    // Сценарий показа уведомления при запуске приложения {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.textContent = 'Пожалуйста, подождите, комментарии загружаются...';
     listElement.append(messageElement);
-    
+    // }
 
     buttonElement.addEventListener("click", () => {
       nameElement.classList.remove("errorColorInput");
       nameElement.classList.remove("errorBoxShadowInput");
       commentsElement.classList.remove("errorColorInput");
       commentsElement.classList.remove("errorBoxShadowInput");
+      // nameElement.value.length < 3 || commentsElement.value.length < 3 || nameElement.value === "" || commentsElement.value === ""
       if (nameElement.value === "" || commentsElement.value === "") {
         if (nameElement.value === "") {
           nameElement.classList.add("errorColorInput");
@@ -238,22 +268,6 @@
       const hours = currentDate.getHours().toString().padStart(2, "0");
       const minutes = currentDate.getMinutes().toString().padStart(2, "0");
       let needDate = (`${date}.${month}.${year} ${hours}:${minutes}`);
-
-      // comments.push({
-      //   name: nameElement.value
-      //     .replaceAll("&", "&amp;")
-      //     .replaceAll("<", "&lt;")
-      //     .replaceAll(">", "&gt;")
-      //     .replaceAll('"', "&quot;"),
-      //   date: needDate,
-      //   text: commentsElement.value
-      //     .replaceAll("&", "&amp;")
-      //     .replaceAll("<", "&lt;")
-      //     .replaceAll(">", "&gt;")
-      //     .replaceAll('"', "&quot;"),
-      //   likes: 0,
-      //   isLiked: false
-      // });
 
       receivedComments();
 
