@@ -69,8 +69,8 @@ export function renderloginComponent({ commentsHtml, appEl, renderComments, comm
             }
 
             loginApi({
-                login: admin,
-                password: admin,
+                login: login,
+                password: password,
                 name: '',
             }).then((user) => {
                 userName = user.user.name;

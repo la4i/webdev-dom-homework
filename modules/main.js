@@ -1,6 +1,5 @@
-import { getComments, postComments } from "./modules/API.js";
-import { renderloginComponent } from "./components/login-component.js";
-import { userName } from "./components/login-component.js";
+import { getComments, postComments } from "./API.js";
+import { renderloginComponent, userName } from "../components/login-components.js";
 
 let comments = [];
 let token = null;
