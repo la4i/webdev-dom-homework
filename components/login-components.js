@@ -10,7 +10,7 @@ export function renderloginComponent({ commentsHtml, appEl, renderComments, comm
         <!-- Список рендерится из JS -->
         ${commentsHtml}
         </ul>
-        <p class="dobavka">Чтобы добавить коментарий,<button id = "buttonAuthorization" class = "buttonAuthorizationCSS">авторизуйтесь</button></p>`
+        <p class="add-coment">Чтобы добавить коментарий,<button id = "buttonAuthorization" class = "buttonAuthorizationCSS">авторизуйтесь</button></p>`
 
     appEl.innerHTML = appHtml;
 

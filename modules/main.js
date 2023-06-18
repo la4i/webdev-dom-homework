@@ -1,26 +1,30 @@
 import { getComments, postComments } from "./API.js";
 import { renderloginComponent, userName } from "../components/login-components.js";
+import { format } from "date-fns";
 
 let comments = [];
 let token = null;
 
-const needTrueDate = (date) => {
-    const newDate = new Date(Date.parse(date));
-    const year = newDate.getFullYear().toString().slice(2);
-    const month = ("0" + (newDate.getMonth() + 1)).slice(-2);
-    const day = ("0" + newDate.getDate()).slice(-2);
-    const hours = ("0" + newDate.getHours()).slice(-2);
-    const minutes = ("0" + newDate.getMinutes()).slice(-2);
-    return `${day}.${month}.${year} ${hours}:${minutes}`;
-}
+// const needTrueDate = (date) => {
+//     const newDate = new Date(Date.parse(date));
+//     const year = newDate.getFullYear().toString().slice(2);
+//     const month = ("0" + (newDate.getMonth() + 1)).slice(-2);
+//     const day = ("0" + newDate.getDate()).slice(-2);
+//     const hours = ("0" + newDate.getHours()).slice(-2);
+//     const minutes = ("0" + newDate.getMinutes()).slice(-2);
+//     return `${day}.${month}.${year} ${hours}:${minutes}`;
+// }
 
 const receivedComments = () => {
 
     return getComments({ token }).then((responseData) => {
         const appComments = responseData.comments.map((comment) => {
+            let trueDate = new Date(comment.date);
+            trueDate.setHours(trueDate.getHours());
+            const needTrueDate = format(trueDate, 'yyyy-dd-MM hh:mm:ss');
             return {
                 name: comment.author.name,
-                date: needTrueDate(comment.date),
+                date: needTrueDate,
                 text: comment.text,
                 likes: comment.likes,
                 isLiked: false,
